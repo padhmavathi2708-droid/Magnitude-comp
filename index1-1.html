@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnitude Comparator Learning Platform</title>
+<meta name="description" content="Master 1-bit, 2-bit, 4-bit and n-bit Magnitude Comparators through animated truth tables, Boolean derivations, circuit diagrams and an interactive simulator.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#3B82F6; --purple:#8B5CF6; --cyan:#06B6D4; --orange:#F97316;
+  --bg-0:#0B1120; --bg-1:#111827; --bg-2:#1F2937;
+  --text-0:#F3F6FB; --text-1:#AEB9CC;
+  --glass: rgba(31,41,55,0.55);
+  --glass-border: rgba(148,163,255,0.18);
+  --grad: linear-gradient(135deg,var(--blue),var(--purple));
+  --grad-2: linear-gradient(135deg,var(--purple),var(--cyan));
+  --radius:16px;
+  --mono:'JetBrains Mono',monospace;
+  --disp:'Space Grotesk',sans-serif;
+  --body:'Inter',sans-serif;
+}
+html.light{
+  --bg-0:#EEF2FC; --bg-1:#E4E9FA; --bg-2:#D9E0F5;
+  --text-0:#0B1120; --text-1:#3A4257;
+  --glass: rgba(255,255,255,0.55);
+  --glass-border: rgba(59,130,246,0.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg-0);
+  color:var(--text-0);
+  font-family:var(--body);
+  overflow-x:hidden;
+  transition:background .4s ease,color .4s ease;
+}
+::selection{background:var(--purple);color:#fff;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--bg-1);}
+::-webkit-scrollbar-thumb{background:var(--grad);border-radius:10px;}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:-0.01em;}
+.mono{font-family:var(--mono);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan); margin-bottom:14px;
+}
+.eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+}
+.glass:hover{ box-shadow:0 0 0 1px rgba(139,92,246,.35), 0 18px 40px -18px rgba(59,130,246,.55); }
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 28px;border-radius:12px;border:none;cursor:pointer;
+  font-family:var(--body);font-weight:600;font-size:15px;
+  position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease;
+}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 10px 30px -10px rgba(139,92,246,.7);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 36px -10px rgba(139,92,246,.85);}
+.btn-ghost{background:transparent;border:1px solid var(--glass-border);color:var(--text-0);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-3px);}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rip .6s linear;pointer-events:none;}
+@keyframes rip{to{transform:scale(3);opacity:0;}}
+
+/* Progress bar */
+#scrollbar{position:fixed;top:0;left:0;height:3px;background:var(--grad-2);z-index:1000;width:0%;box-shadow:0 0 12px var(--cyan);}
+
+/* Loading screen */
+#loader{position:fixed;inset:0;background:var(--bg-0);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;transition:opacity .6s ease, visibility .6s ease;}
+#loader .ring{width:64px;height:64px;border-radius:50%;border:3px solid rgba(139,92,246,.2);border-top-color:var(--purple);border-right-color:var(--cyan);animation:spin 1s linear infinite;}
+#loader p{font-family:var(--mono);color:var(--text-1);font-size:13px;letter-spacing:.1em;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loader.hide{opacity:0;visibility:hidden;}
+
+/* Navbar */
+header{position:sticky;top:0;z-index:500;background:rgba(11,17,32,.7);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-border);}
+html.light header{background:rgba(238,242,252,.8);}
+.nav-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:17px;}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;box-shadow:0 0 18px rgba(139,92,246,.6);}
+.navlinks{display:flex;gap:4px;flex-wrap:wrap;}
+.navlinks a{padding:8px 12px;border-radius:8px;font-size:13.5px;color:var(--text-1);transition:.2s;white-space:nowrap;}
+.navlinks a:hover,.navlinks a.active{color:#fff;background:rgba(139,92,246,.18);}
+.nav-tools{display:flex;align-items:center;gap:10px;}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:var(--text-0);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.2s;}
+.icon-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+#navToggle{display:none;}
+@media (max-width:980px){
+  .navlinks{display:none;}
+  #navToggle{display:flex;}
+  .navlinks.open{display:flex;position:absolute;top:64px;left:0;right:0;background:var(--bg-1);flex-direction:column;padding:12px;border-bottom:1px solid var(--glass-border);}
+}
+
+/* Hero */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;padding-top:60px;}
+#circuitCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55;}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(139,92,246,.18),transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(6,182,212,.14),transparent 55%);pointer-events:none;}
+.hero-inner{position:relative;z-index:2;max-width:820px;margin:0 auto;text-align:center;padding:0 24px;}
+.hero h1{font-size:clamp(2.4rem,6vw,4.4rem);line-height:1.05;margin-bottom:20px;}
+.hero h1 .grad{background:var(--grad-2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero p.sub{color:var(--text-1);font-size:clamp(1rem,1.6vw,1.2rem);max-width:640px;margin:0 auto 34px;line-height:1.6;}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:28px;justify-content:center;margin-top:56px;flex-wrap:wrap;}
+.hero-stats div{text-align:center;}
+.hero-stats b{display:block;font-family:var(--disp);font-size:1.6rem;background:var(--grad-2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-stats span{font-size:12px;color:var(--text-1);letter-spacing:.05em;}
+
+/* sections */
+section{padding:100px 0;position:relative;}
+.section-head{max-width:680px;margin-bottom:56px;}
+.section-head h2{font-size:clamp(1.8rem,3.6vw,2.6rem);margin-bottom:14px;}
+.section-head p{color:var(--text-1);font-size:1.02rem;line-height:1.7;}
+.card{padding:26px;transition:transform .3s ease,box-shadow .3s ease;}
+.card:hover{transform:translateY(-4px);}
+.grid{display:grid;gap:22px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+/* Introduction */
+.intro-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;}
+@media(max-width:900px){.intro-layout{grid-template-columns:1fr;}}
+.intro-layout ul{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:12px;}
+.intro-layout li{display:flex;gap:12px;color:var(--text-1);font-size:.98rem;line-height:1.55;}
+.intro-layout li b{color:var(--text-0);}
+.dot{min-width:8px;height:8px;border-radius:50%;background:var(--grad-2);margin-top:8px;}
+.comp-illustration{position:relative;height:320px;display:flex;align-items:center;justify-content:center;}
+.chip{width:180px;height:180px;border-radius:20px;background:linear-gradient(160deg,var(--bg-2),var(--bg-1));border:1px solid var(--glass-border);position:relative;box-shadow:0 0 60px -10px rgba(139,92,246,.4);}
+.chip::before{content:'A ? B';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:1.3rem;color:var(--cyan);}
+.pin{position:absolute;width:34px;height:4px;background:var(--grad);border-radius:2px;}
+.pin.l1{left:-34px;top:30px;} .pin.l2{left:-34px;top:70px;} .pin.l3{left:-34px;top:110px;} .pin.l4{left:-34px;top:150px;}
+.pin.r1{right:-34px;top:40px;} .pin.r2{right:-34px;top:90px;} .pin.r3{right:-34px;top:140px;}
+.pulse{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulseMove 2.2s ease-in-out infinite;}
+@keyframes pulseMove{0%,100%{transform:translateX(0);opacity:.3;}50%{transform:translateX(28px);opacity:1;}}
+
+/* Tabs */
+.tabbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;}
+.tabbtn{padding:10px 18px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:var(--text-1);cursor:pointer;font-family:var(--mono);font-size:13px;transition:.2s;}
+.tabbtn:hover{color:var(--text-0);}
+.tabbtn.active{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 6px 20px -6px rgba(139,92,246,.7);}
+.tabpanel{display:none;}
+.tabpanel.active{display:block;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.type-block{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;}
+@media(max-width:900px){.type-block{grid-template-columns:1fr;}}
+.type-block h3{font-size:1.4rem;margin-bottom:10px;color:var(--text-0);}
+.type-block p{color:var(--text-1);line-height:1.7;margin-bottom:14px;}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.badge{font-family:var(--mono);font-size:11.5px;padding:5px 10px;border-radius:20px;border:1px solid var(--glass-border);color:var(--cyan);}
+
+/* Truth table */
+.tt-controls{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.tt-controls input[type=text]{background:var(--bg-2);border:1px solid var(--glass-border);border-radius:10px;padding:10px 14px;color:var(--text-0);font-family:var(--mono);font-size:13px;}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:14px;}
+thead th{background:rgba(139,92,246,.16);color:var(--cyan);font-family:var(--mono);font-size:12.5px;padding:12px;text-transform:uppercase;letter-spacing:.06em;text-align:center;}
+tbody td{padding:11px;text-align:center;font-family:var(--mono);font-size:13.5px;border-top:1px solid var(--glass-border);color:var(--text-1);}
+tbody tr{transition:background .2s;}
+tbody tr:hover{background:rgba(59,130,246,.1);}
+tbody tr:hover td{color:var(--text-0);}
+.out-true{color:var(--orange) !important;font-weight:700;}
+
+/* boolean derivation */
+.derivation{display:flex;flex-direction:column;gap:14px;}
+.deriv-step{padding:16px 20px;border-left:3px solid var(--purple);background:rgba(139,92,246,.06);border-radius:0 10px 10px 0;font-family:var(--mono);font-size:14px;opacity:0;transform:translateX(-14px);transition:opacity .5s,transform .5s;}
+.deriv-step.show{opacity:1;transform:translateX(0);}
+.deriv-step .lbl{display:block;font-family:var(--body);color:var(--text-1);font-size:11.5px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;}
+.copybtn{background:none;border:1px solid var(--glass-border);color:var(--text-1);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;float:right;}
+.copybtn:hover{color:var(--cyan);border-color:var(--cyan);}
+
+/* Circuit diagram */
+.circuit-box{position:relative;padding:20px;}
+.circuit-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.circuit-tools .ct-left{display:flex;gap:8px;flex-wrap:wrap;}
+.circuit-legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--text-1);align-items:center;}
+.circuit-legend span{display:inline-flex;align-items:center;gap:6px;}
+.circuit-legend i{width:14px;height:3px;border-radius:2px;background:#3b4560;display:inline-block;}
+.circuit-legend i.live{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+svg.circuit{width:100%;height:auto;display:block;}
+.gatewire{stroke:#3b4560;stroke-width:2;fill:none;stroke-linecap:round;transition:stroke .35s ease, filter .35s ease;}
+.gatewire.on{stroke:var(--cyan);filter:drop-shadow(0 0 5px var(--cyan));stroke-dasharray:7 5;animation:signalFlow .55s linear infinite;}
+@keyframes signalFlow{to{stroke-dashoffset:-12;}}
+.junction{fill:#3b4560;transition:fill .3s ease, filter .3s ease;}
+.junction.on{fill:var(--cyan);filter:drop-shadow(0 0 4px var(--cyan));}
+.gateshape{fill:var(--bg-2);stroke:var(--purple);stroke-width:1.8;transition:fill .35s ease, stroke .35s ease, filter .35s ease;}
+.gateshape.on{stroke:var(--cyan);fill:rgba(6,182,212,.14);filter:drop-shadow(0 0 7px rgba(6,182,212,.65));}
+.gate-bubble{fill:var(--bg-2);stroke:var(--purple);stroke-width:1.8;transition:fill .35s ease, stroke .35s ease, filter .35s ease;}
+.gate-bubble.on{stroke:var(--cyan);fill:rgba(6,182,212,.14);filter:drop-shadow(0 0 7px rgba(6,182,212,.65));}
+.gatelabel{fill:var(--text-1);font-family:'JetBrains Mono',monospace;font-size:11px;pointer-events:none;}
+.gate-name{fill:var(--text-0);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;pointer-events:none;text-anchor:middle;}
+.io-label{fill:var(--text-1);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;}
+.io-label.active{fill:var(--cyan);}
+.out-label{fill:var(--text-0);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;}
+.out-label.active{fill:var(--orange);}
+.led{transition:fill .25s, filter .25s;}
+.led.on{fill:var(--orange);filter:drop-shadow(0 0 8px var(--orange));}
+.led.off{fill:#374151;}
+.fullscreen-active{position:fixed !important;inset:0;z-index:2000;background:var(--bg-1);padding:40px;overflow:auto;}
+@media(max-width:640px){.circuit-legend{display:none;}}
+
+/* working principle */
+.wp-steps{display:flex;flex-direction:column;gap:0;}
+.wp-step{display:grid;grid-template-columns:52px 1fr;gap:18px;padding:22px 0;position:relative;}
+.wp-step:not(:last-child)::before{content:'';position:absolute;left:25px;top:56px;bottom:-10px;width:2px;background:linear-gradient(var(--purple),transparent);}
+.wp-num{width:52px;height:52px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;color:#fff;box-shadow:0 0 20px -4px rgba(139,92,246,.7);}
+.wp-step h4{margin-bottom:6px;}
+.wp-step p{color:var(--text-1);line-height:1.6;font-size:.95rem;}
+
+/* Simulator */
+.sim-panel{display:grid;grid-template-columns:340px 1fr;gap:30px;}
+@media(max-width:900px){.sim-panel{grid-template-columns:1fr;}}
+.bit-toggle-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px;}
+.bit{width:44px;height:44px;border-radius:10px;border:1px solid var(--glass-border);background:var(--bg-2);color:var(--text-0);font-family:var(--mono);font-size:16px;cursor:pointer;transition:.2s;}
+.bit.one{background:var(--grad);border-color:transparent;box-shadow:0 0 14px -2px rgba(6,182,212,.8);}
+.result-leds{display:flex;gap:22px;margin-top:20px;flex-wrap:wrap;}
+.result-led{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.result-led .bulb{width:46px;height:46px;border-radius:50%;background:#374151;transition:.3s;border:2px solid rgba(255,255,255,.06);}
+.result-led .bulb.active{background:var(--orange);box-shadow:0 0 30px 4px rgba(249,115,22,.75);}
+.result-led span{font-family:var(--mono);font-size:12px;color:var(--text-1);}
+.sim-readout{margin-top:18px;padding:16px;border-radius:12px;background:var(--bg-2);font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text-1);}
+.sim-readout b{color:var(--cyan);}
+
+/* applications */
+.app-card{padding:24px;text-align:left;}
+.app-card .ic{width:46px;height:46px;border-radius:12px;background:var(--grad-2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;}
+.app-card h4{margin-bottom:8px;font-size:1.02rem;}
+.app-card p{color:var(--text-1);font-size:.88rem;line-height:1.55;}
+
+/* comparison table tabs already using tab styles */
+
+/* quiz */
+.quiz-box{max-width:720px;margin:0 auto;}
+.quiz-progress{height:6px;border-radius:6px;background:var(--bg-2);overflow:hidden;margin-bottom:26px;}
+.quiz-progress > div{height:100%;background:var(--grad-2);width:0%;transition:width .4s ease;}
+.qtext{font-size:1.15rem;margin-bottom:22px;font-family:var(--disp);}
+.opt{display:block;width:100%;text-align:left;padding:14px 18px;margin-bottom:10px;border-radius:12px;border:1px solid var(--glass-border);background:var(--bg-2);color:var(--text-0);cursor:pointer;font-size:.95rem;transition:.2s;}
+.opt:hover{border-color:var(--cyan);}
+.opt.correct{border-color:#22c55e;background:rgba(34,197,94,.15);}
+.opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.15);}
+.qexplain{margin-top:14px;padding:14px;border-radius:10px;background:rgba(59,130,246,.08);color:var(--text-1);font-size:.88rem;display:none;}
+.qexplain.show{display:block;}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:24px;}
+.quiz-result{text-align:center;padding:40px 20px;}
+.quiz-result .score{font-family:var(--disp);font-size:3rem;background:var(--grad-2);-webkit-background-clip:text;background-clip:text;color:transparent;margin:14px 0;}
+.certificate{margin-top:24px;padding:30px;border:2px dashed var(--purple);border-radius:16px;display:none;}
+.certificate.show{display:block;}
+
+/* revision */
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:900px){.rev-grid{grid-template-columns:1fr;}}
+.rev-card ul{padding-left:18px;color:var(--text-1);line-height:1.8;font-size:.92rem;}
+.formula{font-family:var(--mono);background:var(--bg-2);padding:12px 14px;border-radius:10px;margin:8px 0;font-size:13px;color:var(--cyan);}
+
+/* downloads */
+.dl-card{display:flex;align-items:center;gap:14px;padding:18px 22px;}
+.dl-card .ic{width:40px;height:40px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;}
+.dl-card div h4{font-size:.95rem;margin-bottom:2px;}
+.dl-card div p{font-size:.78rem;color:var(--text-1);}
+
+footer{padding:60px 0 30px;border-top:1px solid var(--glass-border);background:var(--bg-1);}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+@media(max-width:800px){.footer-grid{grid-template-columns:1fr;}}
+footer h5{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-1);margin-bottom:14px;}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+footer ul a{color:var(--text-1);font-size:.9rem;}
+footer ul a:hover{color:var(--cyan);}
+.footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--text-1);font-size:.82rem;padding-top:20px;border-top:1px solid var(--glass-border);}
+#toTop{position:fixed;bottom:26px;right:26px;width:48px;height:48px;border-radius:50%;background:var(--grad);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:0 10px 30px -8px rgba(139,92,246,.8);opacity:0;pointer-events:none;transition:.3s;z-index:400;}
+#toTop.show{opacity:1;pointer-events:auto;}
+
+.tooltip{position:relative;cursor:help;border-bottom:1px dashed var(--cyan);}
+.tooltip .tip{visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:var(--bg-2);border:1px solid var(--glass-border);padding:8px 12px;border-radius:8px;font-size:12px;width:220px;color:var(--text-1);transition:.2s;z-index:50;}
+.tooltip:hover .tip{visibility:visible;opacity:1;}
+
+kbd{background:var(--bg-2);border:1px solid var(--glass-border);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:11px;}
+
+@media(prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="ring"></div><p>INITIALIZING COMPARATOR CORE…</p></div>
+<div id="scrollbar"></div>
+
+<header>
+  <div class="nav-inner">
+    <div class="brand"><div class="logo mono">A?B</div>Magnitude Comparator</div>
+    <nav class="navlinks" id="navlinks">
+      <a href="#home">Home</a>
+      <a href="#intro">Introduction</a>
+      <a href="#types">Types</a>
+      <a href="#truth">Truth Tables</a>
+      <a href="#boolean">Boolean</a>
+      <a href="#circuit">Circuit</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#applications">Applications</a>
+      <a href="#quiz">Quiz</a>
+      <a href="#notes">Notes</a>
+    </nav>
+    <div class="nav-tools">
+      <button class="icon-btn" id="themeToggle" title="Toggle dark / light">🌙</button>
+      <button class="icon-btn" id="speakToggle" title="Read section aloud">🔊</button>
+      <button class="icon-btn" id="navToggle" title="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <canvas id="circuitCanvas"></canvas>
+  <div class="hero-inner">
+    <div class="eyebrow">DIGITAL ELECTRONICS · INTERACTIVE LEARNING</div>
+    <h1>Master the <span class="grad">Magnitude Comparator</span></h1>
+    <p class="sub">Learn 1-bit, 2-bit, 4-bit and n-bit Magnitude Comparators through animations, truth tables, Boolean expressions, circuit diagrams and live simulations.</p>
+    <div class="hero-btns">
+      <a href="#intro" class="btn btn-primary">Start Learning →</a>
+      <a href="#simulator" class="btn btn-ghost">Interactive Simulator</a>
+    </div>
+    <div class="hero-stats">
+      <div><b>4</b><span>Comparator Types</span></div>
+      <div><b>15</b><span>Quiz Questions</span></div>
+      <div><b>3</b><span>Boolean Outputs</span></div>
+      <div><b>100%</b><span>Interactive</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- INTRODUCTION -->
+<section id="intro">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">01 · Foundations</div>
+      <h2>What is a Magnitude Comparator?</h2>
+      <p>A combinational logic circuit that compares two binary numbers and reports their relative size.</p>
+    </div>
+    <div class="intro-layout reveal">
+      <div>
+        <p style="color:var(--text-1);line-height:1.75;margin-bottom:10px;">A <b style="color:var(--text-0)">magnitude comparator</b> takes two n-bit binary numbers, A and B, and determines whether A is greater than, equal to, or less than B — producing three mutually exclusive outputs: <span class="mono" style="color:var(--cyan)">A&gt;B</span>, <span class="mono" style="color:var(--cyan)">A=B</span>, and <span class="mono" style="color:var(--cyan)">A&lt;B</span>.</p>
+        <ul>
+          <li><span class="dot"></span><span><b>Why it's needed:</b> processors, memory controllers and embedded systems constantly have to decide "which value is bigger" — sorting, address decoding, range checks and loop conditions all reduce to this comparison.</span></li>
+          <li><span class="dot"></span><span><b>Real-world uses:</b> ALUs use comparators for branch conditions; routers use them for priority queues; industrial controllers use them for threshold checks.</span></li>
+          <li><span class="dot"></span><span><b>Comparator vs. equality comparator:</b> an <b>equality comparator</b> (built from XNOR gates) only answers "are they equal?" — a single bit output. A full <b>magnitude comparator</b> goes further, ranking the two numbers with three distinct outputs, so it needs extra logic to resolve inequality direction, not just mismatch.</span></li>
+        </ul>
+      </div>
+      <div class="comp-illustration">
+        <div class="chip">
+          <div class="pin l1"></div><div class="pin l2"></div><div class="pin l3"></div><div class="pin l4"></div>
+          <div class="pin r1"></div><div class="pin r2"></div><div class="pin r3"></div>
+          <div class="pulse" style="left:-34px;top:28px;"></div>
+          <div class="pulse" style="left:-34px;top:68px;animation-delay:.4s;"></div>
+          <div class="pulse" style="right:0;top:38px;animation-delay:.8s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TYPES -->
+<section id="types" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">02 · Building Blocks</div>
+      <h2>Types of Comparators</h2>
+      <p>From a single bit to n bits — the same principle scales through cascading.</p>
+    </div>
+    <div class="tabbar reveal" id="typeTabs">
+      <button class="tabbtn active" data-tab="t1">1-bit</button>
+      <button class="tabbtn" data-tab="t2">2-bit</button>
+      <button class="tabbtn" data-tab="t4">4-bit</button>
+      <button class="tabbtn" data-tab="tn">n-bit</button>
+    </div>
+
+    <div class="tabpanel active glass" style="padding:34px;" id="t1">
+      <div class="type-block">
+        <div>
+          <h3>1-bit Comparator</h3>
+          <div class="badge-row"><span class="badge">2 inputs</span><span class="badge">3 outputs</span><span class="badge">XNOR core</span></div>
+          <p>Compares single bits A and B. Since a bit can only be 0 or 1, the logic is simple: A&gt;B only when A=1,B=0; A&lt;B only when A=0,B=1; and A=B when both bits match (an XNOR relation).</p>
+          <p class="mono" style="color:var(--cyan);font-size:.85rem;">A&gt;B = A·B'&nbsp;&nbsp; A&lt;B = A'·B&nbsp;&nbsp; A=B = A⊙B</p>
+        </div>
+        <div>
+          <table><thead><tr><th>A</th><th>B</th><th>A&gt;B</th><th>A=B</th><th>A&lt;B</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>0</td><td class="out-true">1</td><td>0</td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td>0</td><td class="out-true">1</td></tr>
+            <tr><td>1</td><td>0</td><td class="out-true">1</td><td>0</td><td>0</td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td class="out-true">1</td><td>0</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabpanel" style="padding:34px;" id="t2">
+      <div class="type-block glass" style="padding:30px;">
+        <div>
+          <h3>2-bit Comparator</h3>
+          <div class="badge-row"><span class="badge">4 inputs</span><span class="badge">16 rows</span><span class="badge">MSB priority</span></div>
+          <p>Compares A = A1A0 against B = B1B0. The most significant bit decides first — only if the MSBs are equal do the LSBs get a chance to break the tie. This "priority" idea is exactly what lets the design cascade to any bit width.</p>
+        </div>
+        <div>
+          <p class="mono" style="color:var(--cyan);font-size:.82rem;line-height:1.9;">
+          A&gt;B = A1B1' + (A1⊙B1)A0B0'<br>
+          A&lt;B = A1'B1 + (A1⊙B1)A0'B0<br>
+          A=B = (A1⊙B1)(A0⊙B0)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabpanel" style="padding:34px;" id="t4">
+      <div class="type-block glass" style="padding:30px;">
+        <div>
+          <h3>4-bit Comparator</h3>
+          <div class="badge-row"><span class="badge">8 inputs</span><span class="badge">IC 7485</span><span class="badge">Cascadable</span></div>
+          <p>Extends the same MSB-priority rule across 4 bit pairs (A3A2A1A0 vs B3B2B1B0). This is the classic <b>74LS85</b> IC — it even exposes cascading inputs so several 4-bit chips can be chained to compare 8, 12, or 16-bit numbers.</p>
+        </div>
+        <div>
+          <p style="color:var(--text-1);font-size:.9rem;line-height:1.8;">Comparison proceeds bit-by-bit from MSB (A3,B3) down to LSB (A0,B0). The first unequal pair, starting from the top, decides the result; if all four pairs match, A=B.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabpanel" style="padding:34px;" id="tn">
+      <div class="type-block glass" style="padding:30px;">
+        <div>
+          <h3>n-bit Comparator</h3>
+          <div class="badge-row"><span class="badge">Generalized</span><span class="badge">Recursive logic</span></div>
+          <p>For n bits, the recursive rule is: examine bits from MSB (index n−1) to LSB (index 0). At each position, if the bits differ, that position alone determines A&gt;B or A&lt;B; if they are equal, move to the next lower bit. If every bit pair matches, A=B.</p>
+        </div>
+        <div>
+          <p class="mono" style="color:var(--cyan);font-size:.8rem;line-height:1.9;">for i = n−1 downTo 0:<br>&nbsp;&nbsp;if Ai ≠ Bi: result = (Ai &gt; Bi) ? "A&gt;B" : "A&lt;B"; stop<br>if no differing bit found: result = "A=B"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUTH TABLES -->
+<section id="truth">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">03 · Verification</div>
+      <h2>Interactive Truth Tables</h2>
+      <p>Pick a comparator width, filter rows, and see exactly which output fires for every input combination.</p>
+    </div>
+    <div class="glass reveal" style="padding:28px;">
+      <div class="tt-controls">
+        <div class="tabbar" id="ttTabs" style="margin-bottom:0;">
+          <button class="tabbtn active" data-bits="1">1-bit</button>
+          <button class="tabbtn" data-bits="2">2-bit</button>
+        </div>
+        <input type="text" id="ttSearch" placeholder="filter rows e.g. 10">
+        <button class="btn btn-ghost" id="ttDownload" style="padding:9px 16px;font-size:13px;">⬇ Export as text</button>
+      </div>
+      <div style="overflow-x:auto;"><table id="ttTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOLEAN EXPRESSIONS -->
+<section id="boolean" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">04 · Derivation</div>
+      <h2>Boolean Expressions</h2>
+      <p>Step-by-step derivation of the 1-bit comparator equations from the truth table.</p>
+    </div>
+    <div class="glass reveal" style="padding:30px;">
+      <div class="derivation" id="derivChain"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CIRCUIT DIAGRAM -->
+<section id="circuit">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">05 · Logic Circuit</div>
+      <h2>Comparator Circuits</h2>
+      <p>Gate-level logic diagrams for the 1-bit, 2-bit, 4-bit and generalized n-bit magnitude comparator. Toggle the inputs and watch the correct output light up.</p>
+    </div>
+
+    <div class="tabbar reveal" id="circuitTypeTabs">
+      <button class="tabbtn active" data-ctab="c1">1-bit</button>
+      <button class="tabbtn" data-ctab="c2">2-bit</button>
+      <button class="tabbtn" data-ctab="c4">4-bit</button>
+      <button class="tabbtn" data-ctab="cn">n-bit</button>
+    </div>
+
+    <div class="tabpanel active" id="c1">
+    <div class="glass circuit-box reveal" id="circuitWrap">
+      <div class="circuit-tools">
+        <div class="ct-left">
+          <button class="btn btn-ghost" id="circA" style="padding:8px 16px;font-size:13px;">A = 0</button>
+          <button class="btn btn-ghost" id="circB" style="padding:8px 16px;font-size:13px;">B = 0</button>
+          <button class="icon-btn" id="circFull" title="Fullscreen">⛶</button>
+        </div>
+        <div class="circuit-legend">
+          <span><i></i> idle wire</span>
+          <span><i class="live"></i> logic 1 (active)</span>
+        </div>
+      </div>
+      <svg class="circuit" viewBox="0 0 900 400" id="circuitSvg" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    </div>
+
+    <div class="tabpanel" id="c2">
+    <div class="glass circuit-box reveal" id="circuitWrap2">
+      <div class="circuit-tools">
+        <div class="ct-left">
+          <button class="btn btn-ghost" id="c2_A1" style="padding:8px 14px;font-size:13px;">A1 = 0</button>
+          <button class="btn btn-ghost" id="c2_A0" style="padding:8px 14px;font-size:13px;">A0 = 0</button>
+          <button class="btn btn-ghost" id="c2_B1" style="padding:8px 14px;font-size:13px;">B1 = 0</button>
+          <button class="btn btn-ghost" id="c2_B0" style="padding:8px 14px;font-size:13px;">B0 = 0</button>
+          <button class="icon-btn" id="circFull2" title="Fullscreen">⛶</button>
+        </div>
+        <div class="circuit-legend">
+          <span><i></i> idle wire</span>
+          <span><i class="live"></i> logic 1 (active)</span>
+        </div>
+      </div>
+      <svg class="circuit" viewBox="0 0 1000 420" id="circuitSvg2" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    </div>
+
+    <div class="tabpanel" id="c4">
+    <div class="glass circuit-box reveal" id="circuitWrap4">
+      <div class="circuit-tools">
+        <div class="ct-left">
+          <button class="btn btn-ghost" id="c4_A3" style="padding:7px 12px;font-size:12.5px;">A3=0</button>
+          <button class="btn btn-ghost" id="c4_A2" style="padding:7px 12px;font-size:12.5px;">A2=0</button>
+          <button class="btn btn-ghost" id="c4_A1" style="padding:7px 12px;font-size:12.5px;">A1=0</button>
+          <button class="btn btn-ghost" id="c4_A0" style="padding:7px 12px;font-size:12.5px;">A0=0</button>
+          <button class="btn btn-ghost" id="c4_B3" style="padding:7px 12px;font-size:12.5px;">B3=0</button>
+          <button class="btn btn-ghost" id="c4_B2" style="padding:7px 12px;font-size:12.5px;">B2=0</button>
+          <button class="btn btn-ghost" id="c4_B1" style="padding:7px 12px;font-size:12.5px;">B1=0</button>
+          <button class="btn btn-ghost" id="c4_B0" style="padding:7px 12px;font-size:12.5px;">B0=0</button>
+          <button class="icon-btn" id="circFull4" title="Fullscreen">⛶</button>
+        </div>
+        <div class="circuit-legend">
+          <span><i></i> idle wire</span>
+          <span><i class="live"></i> logic 1 (active)</span>
+        </div>
+      </div>
+      <svg class="circuit" viewBox="0 0 1050 780" id="circuitSvg4" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    </div>
+
+    <div class="tabpanel" id="cn">
+    <div class="glass circuit-box reveal" id="circuitWrapN">
+      <div class="circuit-tools">
+        <div class="ct-left">
+          <span class="mono" style="color:var(--text-1);font-size:13px;">Generalized structure — bit index i runs from n−1 (MSB) down to 0 (LSB)</span>
+          <button class="icon-btn" id="circFullN" title="Fullscreen">⛶</button>
+        </div>
+        <div class="circuit-legend">
+          <span><i></i> logic path (structure only — no fixed input values for symbolic n)</span>
+        </div>
+      </div>
+      <svg class="circuit" viewBox="0 0 1050 780" id="circuitSvgN" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WORKING PRINCIPLE -->
+<section id="working" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">06 · Signal Flow</div>
+      <h2>Working Principle</h2>
+      <p>How a comparison request moves through the circuit, gate by gate.</p>
+    </div>
+    <div class="wp-steps reveal">
+      <div class="wp-step"><div class="wp-num">1</div><div><h4>Inputs enter</h4><p>Bits A and B are applied to the primary input lines. Two NOT gates invert them to generate the complements A′ and B′.</p></div></div>
+      <div class="wp-step"><div class="wp-num">2</div><div><h4>Four AND gates evaluate in parallel</h4><p>A·B′ tests "A is 1 while B is 0" (A&gt;B). A′·B tests the opposite (A&lt;B). A·B and A′·B′ each test one of the two ways A and B can match.</p></div></div>
+      <div class="wp-step"><div class="wp-num">3</div><div><h4>OR gate resolves equality</h4><p>An OR gate combines A·B and A′·B′ — it outputs 1 if either matching case is true, giving A=B = A·B + A′·B′.</p></div></div>
+      <div class="wp-step"><div class="wp-num">4</div><div><h4>Final output & LED</h4><p>Exactly one of the three output lines goes high. That line drives its LED, so the result is visible instantly — this is the signal you toggled above.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section id="simulator">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">07 · Try It Yourself</div>
+      <h2>Interactive Comparator Simulator</h2>
+      <p>Choose a bit width, set A and B, and watch the comparator resolve the result live.</p>
+    </div>
+    <div class="glass reveal" style="padding:30px;">
+      <div class="tabbar" id="simTabs">
+        <button class="tabbtn active" data-w="1">1-bit</button>
+        <button class="tabbtn" data-w="2">2-bit</button>
+        <button class="tabbtn" data-w="4">4-bit</button>
+      </div>
+      <div class="sim-panel">
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px;">Input A</div>
+          <div class="bit-toggle-row" id="rowA"></div>
+          <div class="eyebrow" style="margin-bottom:6px;">Input B</div>
+          <div class="bit-toggle-row" id="rowB"></div>
+          <div class="result-leds">
+            <div class="result-led"><div class="bulb" id="ledGT"></div><span>A &gt; B</span></div>
+            <div class="result-led"><div class="bulb" id="ledEQ"></div><span>A = B</span></div>
+            <div class="result-led"><div class="bulb" id="ledLT"></div><span>A &lt; B</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="sim-readout" id="simReadout"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATIONS -->
+<section id="applications" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">08 · Where It's Used</div>
+      <h2>Real-Life Applications</h2>
+      <p>Comparators quietly run inside almost every digital system you touch.</p>
+    </div>
+    <div class="grid grid-4 reveal" id="appGrid"></div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section id="compare">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">09 · How It Differs</div>
+      <h2>Comparator vs. Other Combinational Blocks</h2>
+      <p>A quick reference for how a magnitude comparator relates to its neighboring building blocks.</p>
+    </div>
+    <div class="glass reveal" style="padding:10px;overflow-x:auto;">
+      <table>
+        <thead><tr><th>Block</th><th>Inputs → Outputs</th><th>Core Function</th></tr></thead>
+        <tbody>
+          <tr><td>Comparator</td><td>2n → 3</td><td>Ranks two numbers (&gt;, =, &lt;)</td></tr>
+          <tr><td>Encoder</td><td>2ⁿ → n</td><td>Active line → binary code</td></tr>
+          <tr><td>Decoder</td><td>n → 2ⁿ</td><td>Binary code → one active line</td></tr>
+          <tr><td>Multiplexer</td><td>2ⁿ+n → 1</td><td>Selects one of many inputs</td></tr>
+          <tr><td>Demultiplexer</td><td>1+n → 2ⁿ</td><td>Routes one input to many lines</td></tr>
+          <tr><td>Priority Encoder</td><td>2ⁿ → n</td><td>Encodes the highest-priority active input</td></tr>
+          <tr><td>Flip-Flop</td><td>1–2 → 1–2</td><td>Stores a single bit (sequential)</td></tr>
+          <tr><td>Counter</td><td>clock → n</td><td>Counts clock pulses (sequential)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">10 · Test Yourself</div>
+      <h2>Quiz</h2>
+      <p>15 questions, shuffled every attempt. Score 60% or higher to earn a certificate.</p>
+    </div>
+    <div class="glass reveal quiz-box" style="padding:34px;" id="quizWrap">
+      <div class="quiz-progress"><div id="quizProgressBar"></div></div>
+      <div id="quizBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVISION -->
+<section id="revision">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">11 · Quick Revision</div>
+      <h2>Formula Sheet & Viva Prep</h2>
+    </div>
+    <div class="rev-grid reveal">
+      <div class="glass card rev-card">
+        <h4 style="margin-bottom:10px;">Key Formulas</h4>
+        <div class="formula">A&gt;B = A·B′</div>
+        <div class="formula">A&lt;B = A′·B</div>
+        <div class="formula">A=B = A⊙B = A′B′+AB</div>
+        <div class="formula">2-bit A&gt;B = A1B1′ + (A1⊙B1)A0B0′</div>
+      </div>
+      <div class="glass card rev-card">
+        <h4 style="margin-bottom:10px;">Common Viva / Interview Questions</h4>
+        <ul>
+          <li>Why does comparison start from the MSB?</li>
+          <li>How does the 7485 IC cascade to build wider comparators?</li>
+          <li>Difference between a comparator and an equality checker?</li>
+          <li>How many gates does a 1-bit comparator need at minimum?</li>
+          <li>How would you design a 3-bit comparator from 1-bit blocks?</li>
+        </ul>
+      </div>
+    </div>
+    <div class="glass card reveal" style="margin-top:22px;">
+      <h4 style="margin-bottom:10px;">Mind Map — Comparator Family</h4>
+      <p style="color:var(--text-1);font-size:.92rem;line-height:1.8;">Magnitude Comparator → <b>1-bit</b> (basic cell) → <b>2-bit</b> (adds MSB-priority chaining) → <b>4-bit</b> (IC 7485, cascadable) → <b>n-bit</b> (recursive chain of the same cell) → feeds into <b>ALU</b>, <b>address decoding</b>, <b>sorting networks</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOADS / NOTES -->
+<section id="notes" style="background:var(--bg-1);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">12 · Take It With You</div>
+      <h2>Notes & Cheat Sheet</h2>
+      <p>Everything on this page, condensed — copy or print for offline review.</p>
+    </div>
+    <div class="grid grid-2 reveal" id="dlGrid"></div>
+  </div>
+</section>
+
+<section id="references">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">References</div>
+      <h2>Further Reading</h2>
+    </div>
+    <div class="glass card reveal">
+      <ul style="color:var(--text-1);line-height:2;font-size:.92rem;padding-left:18px;">
+        <li>Morris Mano, <i>Digital Design</i> — combinational logic chapter on comparators</li>
+        <li>Texas Instruments 74LS85 4-bit Magnitude Comparator datasheet</li>
+        <li>Floyd, <i>Digital Fundamentals</i> — magnitude comparison circuits</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="brand" style="margin-bottom:14px;"><div class="logo mono">A?B</div>Magnitude Comparator</div>
+        <p style="color:var(--text-1);font-size:.88rem;max-width:340px;line-height:1.7;">An interactive learning platform for digital electronics students covering magnitude comparators from first principles to simulation.</p>
+      </div>
+      <div>
+        <h5>Learn</h5>
+        <ul><a href="#intro">Introduction</a><a href="#types">Types</a><a href="#truth">Truth Tables</a><a href="#boolean">Boolean Expressions</a><a href="#simulator">Simulator</a></ul>
+      </div>
+      <div>
+        <h5>More</h5>
+        <ul><a href="#quiz">Quiz</a><a href="#revision">Revision</a><a href="#notes">Notes</a><a href="#references">References</a><a href="https://github.com" target="_blank" rel="noopener">GitHub ↗</a></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Magnitude Comparator Learning Platform — built for education.</span>
+      <span>Keyboard: <kbd>T</kbd> theme · <kbd>↑</kbd> top</span>
+    </div>
+  </div>
+</footer>
+
+<button id="toTop" title="Back to top">↑</button>
+
+<script>
+/* ---------- Loader ---------- */
+window.addEventListener('load',()=>{ setTimeout(()=>document.getElementById('loader').classList.add('hide'),500); });
+
+/* ---------- Scroll progress + navbar active + back to top ---------- */
+const scrollbar=document.getElementById('scrollbar');
+const toTop=document.getElementById('toTop');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+  scrollbar.style.width=pct+'%';
+  toTop.classList.toggle('show',h.scrollTop>500);
+});
+toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+/* nav active link + reveal on scroll */
+const sections=document.querySelectorAll('section[id]');
+const navA=document.querySelectorAll('.navlinks a');
+const revealEls=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('in');
+      const id=e.target.closest('section')?.id;
+      if(id){navA.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));}
+    }
+  });
+},{threshold:.15});
+revealEls.forEach(el=>io.observe(el));
+
+/* mobile nav */
+document.getElementById('navToggle').addEventListener('click',()=>document.getElementById('navlinks').classList.toggle('open'));
+
+/* theme toggle */
+const themeBtn=document.getElementById('themeToggle');
+themeBtn.addEventListener('click',()=>{
+  document.documentElement.classList.toggle('light');
+  themeBtn.textContent=document.documentElement.classList.contains('light')?'☀️':'🌙';
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='t'||e.key==='T'){ if(!/input|textarea/i.test(document.activeElement.tagName)) themeBtn.click(); }
+  if(e.key==='ArrowUp' && e.shiftKey){ window.scrollTo({top:0,behavior:'smooth'}); }
+});
+
+/* text-to-speech */
+const speakBtn=document.getElementById('speakToggle');
+speakBtn.addEventListener('click',()=>{
+  if(!('speechSynthesis' in window)){alert('Speech synthesis not supported in this browser.');return;}
+  if(speechSynthesis.speaking){speechSynthesis.cancel();return;}
+  const visible=[...sections].find(s=>{const r=s.getBoundingClientRect();return r.top<window.innerHeight/2 && r.bottom>0;});
+  const txt=(visible?.innerText||'').slice(0,600);
+  const u=new SpeechSynthesisUtterance(txt);
+  speechSynthesis.speak(u);
+});
+
+/* ripple on buttons */
+document.querySelectorAll('.btn').forEach(b=>{
+  b.addEventListener('click',function(e){
+    const r=document.createElement('span');
+    r.className='ripple';
+    const rect=this.getBoundingClientRect();
+    r.style.left=(e.clientX-rect.left)+'px'; r.style.top=(e.clientY-rect.top)+'px';
+    this.appendChild(r); setTimeout(()=>r.remove(),600);
+  });
+});
+
+/* ---------- Hero circuit canvas particle/line animation ---------- */
+const canvas=document.getElementById('circuitCanvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
+resizeCanvas(); window.addEventListener('resize',resizeCanvas);
+let nodes=[];
+function initNodes(){
+  nodes=[];
+  const cols=Math.max(6,Math.floor(canvas.width/140));
+  const rows=Math.max(4,Math.floor(canvas.height/120));
+  for(let i=0;i<cols;i++){
+    for(let j=0;j<rows;j++){
+      nodes.push({x:(i+0.5)*(canvas.width/cols)+ (Math.random()*30-15), y:(j+0.5)*(canvas.height/rows)+(Math.random()*30-15), phase:Math.random()*Math.PI*2});
+    }
+  }
+}
+initNodes(); window.addEventListener('resize',initNodes);
+let t=0;
+function drawCircuit(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(59,130,246,0.16)'; ctx.lineWidth=1;
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j];
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<160){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+  }
+  nodes.forEach(n=>{
+    const glow=(Math.sin(t*0.02+n.phase)+1)/2;
+    ctx.beginPath();
+    ctx.fillStyle=`rgba(6,182,212,${0.25+glow*0.6})`;
+    ctx.arc(n.x,n.y,2+glow*1.8,0,Math.PI*2);
+    ctx.fill();
+  });
+  t++;
+  requestAnimationFrame(drawCircuit);
+}
+drawCircuit();
+
+/* ---------- Generic tab handler ---------- */
+function setupTabs(barSelector,panelIdsAttr){
+  document.querySelectorAll(barSelector+' .tabbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const bar=btn.closest(barSelector);
+      bar.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      btn.dispatchEvent(new CustomEvent('tabchange',{bubbles:true}));
+    });
+  });
+}
+/* type tabs (t1..tn) */
+document.querySelectorAll('#typeTabs .tabbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#typeTabs .tabbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- Truth tables ---------- */
+function buildTruthTable(bits){
+  const table=document.getElementById('ttTable');
+  const rowsCount=Math.pow(2,bits*2);
+  let head='<thead><tr>';
+  for(let i=bits-1;i>=0;i--) head+=`<th>A${i}</th>`;
+  for(let i=bits-1;i>=0;i--) head+=`<th>B${i}</th>`;
+  head+='<th>A&gt;B</th><th>A=B</th><th>A&lt;B</th></tr></thead>';
+  let body='<tbody>';
+  for(let r=0;r<rowsCount;r++){
+    const A=(r>>bits) & (Math.pow(2,bits)-1);
+    const B=r & (Math.pow(2,bits)-1);
+    const abits=A.toString(2).padStart(bits,'0').split('');
+    const bbits=B.toString(2).padStart(bits,'0').split('');
+    let gt=A>B?1:0, eq=A===B?1:0, lt=A<B?1:0;
+    const rowStr=abits.join('')+bbits.join('');
+    body+=`<tr data-row="${rowStr}">`;
+    abits.forEach(b=>body+=`<td>${b}</td>`);
+    bbits.forEach(b=>body+=`<td>${b}</td>`);
+    body+=`<td class="${gt?'out-true':''}">${gt}</td><td class="${eq?'out-true':''}">${eq}</td><td class="${lt?'out-true':''}">${lt}</td></tr>`;
+  }
+  body+='</tbody>';
+  table.innerHTML=head+body;
+}
+let currentTTBits=1;
+buildTruthTable(1);
+document.querySelectorAll('#ttTabs .tabbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#ttTabs .tabbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTTBits=parseInt(btn.dataset.bits);
+    buildTruthTable(currentTTBits);
+    document.getElementById('ttSearch').value='';
+  });
+});
+document.getElementById('ttSearch').addEventListener('input',(e)=>{
+  const q=e.target.value.trim();
+  document.querySelectorAll('#ttTable tbody tr').forEach(tr=>{
+    tr.style.display=(!q || tr.dataset.row.includes(q))?'':'none';
+  });
+});
+document.getElementById('ttDownload').addEventListener('click',()=>{
+  let text='A/B truth table ('+currentTTBits+'-bit)\n';
+  document.querySelectorAll('#ttTable tbody tr').forEach(tr=>{
+    text+=[...tr.children].map(td=>td.textContent).join('\t')+'\n';
+  });
+  const blob=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='truth_table.txt'; a.click();
+});
+
+/* ---------- Boolean derivation animated ---------- */
+const derivSteps=[
+  {lbl:'Step 1 — Start from the truth table', eq:'A>B is 1 only when A=1, B=0'},
+  {lbl:'Step 2 — Write as a product term', eq:'A>B = A · B\''},
+  {lbl:'Step 3 — Same logic for A<B', eq:'A<B = A\' · B'},
+  {lbl:'Step 4 — Equality via XNOR', eq:'A=B = A\'B\' + AB = A ⊙ B'},
+  {lbl:'Step 5 — Sanity check', eq:'(A>B) + (A=B) + (A<B) = 1  (mutually exclusive, exhaustive)'}
+];
+const chain=document.getElementById('derivChain');
+derivSteps.forEach(s=>{
+  const div=document.createElement('div');
+  div.className='deriv-step';
+  div.innerHTML=`<button class="copybtn">copy</button><span class="lbl">${s.lbl}</span>${s.eq}`;
+  chain.appendChild(div);
+});
+new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{ if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('show'), i*120); } });
+},{threshold:.3}).observe(chain);
+[...chain.querySelectorAll('.deriv-step')].forEach((el,i)=>{
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ setTimeout(()=>el.classList.add('show'), i*150); obs.disconnect(); } });
+  },{threshold:.4});
+  obs.observe(el);
+});
+chain.addEventListener('click',(e)=>{
+  if(e.target.classList.contains('copybtn')){
+    const eq=e.target.parentElement.textContent.replace('copy','').trim();
+    navigator.clipboard?.writeText(eq);
+    e.target.textContent='copied!'; setTimeout(()=>e.target.textContent='copy',1200);
+  }
+});
+
+/* ---------- Circuit SVG (1-bit) — real IEEE/ANSI gate glyphs ---------- */
+const svgNS='http://www.w3.org/2000/svg';
+const circuitSvg=document.getElementById('circuitSvg');
+function el(tag,attrs){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+/* IEEE/ANSI gate shape paths */
+function andPath(x,y,w,h){
+  const r=h/2;
+  return `M${x},${y} L${x},${y+h} L${x+w-r},${y+h} A${r},${r} 0 0 0 ${x+w-r},${y} Z`;
+}
+function orPath(x,y,w,h){
+  return `M${x},${y} `+
+    `Q${x+w*0.42},${y} ${x+w*0.62},${y+h*0.14} `+
+    `Q${x+w},${y+h*0.42} ${x+w},${y+h*0.5} `+
+    `Q${x+w},${y+h*0.58} ${x+w*0.62},${y+h*0.86} `+
+    `Q${x+w*0.42},${y+h} ${x},${y+h} `+
+    `Q${x+w*0.22},${y+h*0.5} ${x},${y} Z`;
+}
+function notPath(x,y,w,h){
+  const tipX=x+w*0.8;
+  return `M${x},${y} L${x},${y+h} L${tipX},${y+h/2} Z`;
+}
+
+/* Gate geometry (all coordinates in the 900x400 viewBox) */
+const AND_W=56, AND_H=40;
+const G={
+  and1:{x:300,y:40},   // A · B'  -> A>B
+  and3:{x:300,y:120},  // A · B   -> feeds OR
+  and4:{x:300,y:200},  // A'· B'  -> feeds OR
+  and2:{x:300,y:280},  // A'· B   -> A<B
+};
+const NOT_W=38, NOT_H=40;
+const notA={x:176,y:230};
+const notB={x:176,y:170};
+const orGate={x:470,y:130,w:74,h:100};
+
+function andPorts(g){return {top:{x:g.x,y:g.y+AND_H*0.25},bot:{x:g.x,y:g.y+AND_H*0.75},out:{x:g.x+AND_W,y:g.y+AND_H*0.5}};}
+function notPorts(g){const tipX=g.x+NOT_W*0.8;const bubR=4.5;return {in:{x:g.x,y:g.y+NOT_H/2},out:{x:tipX+bubR*2+2,y:g.y+NOT_H/2},bubbleCx:tipX+bubR+1,bubbleCy:g.y+NOT_H/2,bubR};}
+
+const p1=andPorts(G.and1), p3=andPorts(G.and3), p4=andPorts(G.and4), p2=andPorts(G.and2);
+const pnA=notPorts(notA), pnB=notPorts(notB);
+const orIn1={x:orGate.x,y:orGate.y+orGate.h*0.25}, orIn2={x:orGate.x,y:orGate.y+orGate.h*0.75};
+const orOut={x:orGate.x+orGate.w,y:orGate.y+orGate.h*0.5};
+
+function buildCircuit(){
+  circuitSvg.innerHTML='';
+
+  /* ---- Wire groups (each <path> carries every segment for one logic signal) ---- */
+  const wires=[
+    {id:'wA',   d:`M40,${p1.top.y} L90,${p1.top.y} M90,${p1.top.y} L90,${pnA.in.y} M90,${p3.top.y} L${p3.top.x},${p3.top.y} M90,${p1.top.y} L${p1.top.x},${p1.top.y} M90,${pnA.in.y} L${notA.x},${pnA.in.y}`},
+    {id:'wB',   d:`M40,${p2.bot.y} L110,${p2.bot.y} M110,${p3.bot.y} L110,${p2.bot.y} M110,${p3.bot.y} L${p3.bot.x},${p3.bot.y} M110,${pnB.in.y} L${notB.x},${pnB.in.y} M110,${p2.bot.y} L${p2.bot.x},${p2.bot.y}`},
+    {id:'wAn',  d:`M${pnA.out.x},${pnA.out.y} L250,${pnA.out.y} M250,${p4.top.y} L250,${p2.top.y} M250,${p4.top.y} L${p4.top.x},${p4.top.y} M250,${p2.top.y} L${p2.top.x},${p2.top.y}`},
+    {id:'wBn',  d:`M${pnB.out.x},${pnB.out.y} L250,${pnB.out.y} M250,${p1.bot.y} L250,${p4.bot.y} M250,${p1.bot.y} L${p1.bot.x},${p1.bot.y} M250,${p4.bot.y} L${p4.bot.x},${p4.bot.y}`},
+    {id:'wGT',  d:`M${p1.out.x},${p1.out.y} L650,${p1.out.y}`},
+    {id:'wLT',  d:`M${p2.out.x},${p2.out.y} L650,${p2.out.y}`},
+    {id:'wOr1', d:`M${p3.out.x},${p3.out.y} L400,${p3.out.y} L400,${orIn1.y} L${orIn1.x},${orIn1.y}`},
+    {id:'wOr2', d:`M${p4.out.x},${p4.out.y} L400,${p4.out.y} L400,${orIn2.y} L${orIn2.x},${orIn2.y}`},
+    {id:'wEQ',  d:`M${orOut.x},${orOut.y} L650,${orOut.y}`},
+  ];
+  wires.forEach(w=>circuitSvg.appendChild(el('path',{id:w.id,class:'gatewire','d':w.d})));
+
+  /* ---- Junction dots (T-branch points) ---- */
+  const junctions=[
+    {id:'jA1',x:90,y:p1.top.y,sig:'a'},{id:'jA2',x:90,y:p3.top.y,sig:'a'},
+    {id:'jB1',x:110,y:p3.bot.y,sig:'b'},{id:'jB2',x:110,y:p2.bot.y,sig:'b'},
+    {id:'jAn1',x:250,y:p4.top.y,sig:'notA'},{id:'jAn2',x:250,y:p2.top.y,sig:'notA'},
+    {id:'jBn1',x:250,y:p1.bot.y,sig:'notB'},{id:'jBn2',x:250,y:p4.bot.y,sig:'notB'},
+  ];
+  junctions.forEach(j=>circuitSvg.appendChild(el('circle',{id:j.id,cx:j.x,cy:j.y,r:3,class:'junction'})));
+
+  /* ---- Input labels ---- */
+  circuitSvg.appendChild(el('text',{x:14,y:p1.top.y+5,class:'io-label',id:'lblA'})).textContent='A';
+  circuitSvg.appendChild(el('text',{x:14,y:p2.bot.y+5,class:'io-label',id:'lblB'})).textContent='B';
+
+  /* ---- NOT gates (triangle + bubble) ---- */
+  circuitSvg.appendChild(el('path',{d:notPath(notA.x,notA.y,NOT_W,NOT_H),class:'gateshape',id:'gateNotA'}));
+  circuitSvg.appendChild(el('circle',{cx:pnA.bubbleCx,cy:pnA.bubbleCy,r:pnA.bubR,class:'gate-bubble',id:'bubNotA'}));
+  circuitSvg.appendChild(el('text',{x:notA.x+8,y:notA.y-8,class:'gatelabel'})).textContent="NOT (A')";
+
+  circuitSvg.appendChild(el('path',{d:notPath(notB.x,notB.y,NOT_W,NOT_H),class:'gateshape',id:'gateNotB'}));
+  circuitSvg.appendChild(el('circle',{cx:pnB.bubbleCx,cy:pnB.bubbleCy,r:pnB.bubR,class:'gate-bubble',id:'bubNotB'}));
+  circuitSvg.appendChild(el('text',{x:notB.x+8,y:notB.y-8,class:'gatelabel'})).textContent="NOT (B')";
+
+  /* ---- AND gates ---- */
+  const andMeta=[
+    {key:'and1',expr:"A · B'"},{key:'and3',expr:'A · B'},
+    {key:'and4',expr:"A' · B'"},{key:'and2',expr:"A' · B"},
+  ];
+  andMeta.forEach(m=>{
+    const g=G[m.key];
+    circuitSvg.appendChild(el('path',{d:andPath(g.x,g.y,AND_W,AND_H),class:'gateshape',id:'gate'+m.key}));
+    circuitSvg.appendChild(el('text',{x:g.x+AND_W/2,y:g.y-9,class:'gate-name'})).textContent='AND';
+    circuitSvg.appendChild(el('text',{x:g.x+AND_W/2,y:g.y+AND_H+15,class:'gatelabel',style:'text-anchor:middle'})).textContent=m.expr;
+  });
+
+  /* ---- OR gate ---- */
+  circuitSvg.appendChild(el('path',{d:orPath(orGate.x,orGate.y,orGate.w,orGate.h),class:'gateshape',id:'gateOr'}));
+  circuitSvg.appendChild(el('text',{x:orGate.x+orGate.w/2,y:orGate.y-10,class:'gate-name'})).textContent='OR';
+  circuitSvg.appendChild(el('text',{x:orGate.x+orGate.w/2,y:orGate.y+orGate.h+18,class:'gatelabel',style:'text-anchor:middle'})).textContent="A·B + A'·B'";
+
+  /* ---- Output labels + LEDs ---- */
+  const outs=[{y:p1.out.y,txt:'A > B',id:'GT'},{y:orOut.y,txt:'A = B',id:'EQ'},{y:p2.out.y,txt:'A < B',id:'LT'}];
+  outs.forEach(o=>{
+    circuitSvg.appendChild(el('text',{x:660,y:o.y-8,class:'out-label',id:'outlbl'+o.id})).textContent=o.txt;
+    circuitSvg.appendChild(el('circle',{cx:865,cy:o.y,r:11,class:'led off',id:'ledSvg'+o.id}));
+    circuitSvg.appendChild(el('path',{d:`M650,${o.y} L854,${o.y}`,class:'gatewire',id:'wLed'+o.id}));
+  });
+}
+buildCircuit();
+
+let circA=0, circB=0;
+const circABtn=document.getElementById('circA'), circBBtn=document.getElementById('circB');
+function setCls(id,on){const n=document.getElementById(id); if(n) n.classList.toggle('on', !!on);}
+
+function updateCircuit(){
+  circABtn.textContent='A = '+circA; circBBtn.textContent='B = '+circB;
+  const a=circA===1, b=circB===1;
+  const notAv=!a, notBv=!b;
+  const gt = a && notBv;           // A · B'
+  const lt = notAv && b;           // A' · B
+  const eqTerm1 = a && b;          // A · B
+  const eqTerm2 = notAv && notBv;  // A' · B'
+  const eq = eqTerm1 || eqTerm2;   // A·B + A'·B'
+
+  // input labels
+  setCls('lblA', a); setCls('lblB', b);
+  document.getElementById('lblA').classList.toggle('active', a);
+  document.getElementById('lblB').classList.toggle('active', b);
+
+  // wires
+  setCls('wA', a); setCls('wB', b); setCls('wAn', notAv); setCls('wBn', notBv);
+  setCls('wGT', gt); setCls('wLT', lt);
+  setCls('wOr1', eqTerm1); setCls('wOr2', eqTerm2); setCls('wEQ', eq);
+  setCls('wLedGT', gt); setCls('wLedLT', lt); setCls('wLedEQ', eq);
+
+  // junctions
+  setCls('jA1', a); setCls('jA2', a); setCls('jB1', b); setCls('jB2', b);
+  setCls('jAn1', notAv); setCls('jAn2', notAv); setCls('jBn1', notBv); setCls('jBn2', notBv);
+
+  // gates
+  setCls('gateNotA', notAv); setCls('bubNotA', notAv);
+  setCls('gateNotB', notBv); setCls('bubNotB', notBv);
+  setCls('gateand1', gt); setCls('gateand2', lt);
+  setCls('gateand3', eqTerm1); setCls('gateand4', eqTerm2);
+  setCls('gateOr', eq);
+
+  // output labels
+  ['GT','EQ','LT'].forEach(k=>document.getElementById('outlbl'+k)?.classList.remove('active'));
+  document.getElementById('outlbl'+(gt?'GT':eq?'EQ':'LT'))?.classList.add('active');
+
+  // LEDs
+  document.getElementById('ledSvgGT').setAttribute('class','led '+(gt?'on':'off'));
+  document.getElementById('ledSvgEQ').setAttribute('class','led '+(eq?'on':'off'));
+  document.getElementById('ledSvgLT').setAttribute('class','led '+(lt?'on':'off'));
+}
+circABtn.addEventListener('click',()=>{circA=circA?0:1;updateCircuit();});
+circBBtn.addEventListener('click',()=>{circB=circB?0:1;updateCircuit();});
+updateCircuit();
+document.getElementById('circFull').addEventListener('click',()=>{
+  document.getElementById('circuitWrap').classList.toggle('fullscreen-active');
+});
+
+/* ---------- Simulator ---------- */
+let simWidth=1;
+let simA=[0], simB=[0];
+function renderSimRows(){
+  simA=Array(simWidth).fill(0); simB=Array(simWidth).fill(0);
+  const rowA=document.getElementById('rowA'), rowB=document.getElementById('rowB');
+  rowA.innerHTML=''; rowB.innerHTML='';
+  for(let i=0;i<simWidth;i++){
+    const bA=document.createElement('button'); bA.className='bit'; bA.textContent='0'; bA.dataset.i=i;
+    bA.addEventListener('click',()=>{simA[i]=simA[i]?0:1;bA.textContent=simA[i];bA.classList.toggle('one',!!simA[i]);runSim();});
+    rowA.appendChild(bA);
+    const bB=document.createElement('button'); bB.className='bit'; bB.textContent='0'; bB.dataset.i=i;
+    bB.addEventListener('click',()=>{simB[i]=simB[i]?0:1;bB.textContent=simB[i];bB.classList.toggle('one',!!simB[i]);runSim();});
+    rowB.appendChild(bB);
+  }
+  runSim();
+}
+function runSim(){
+  const Aval=parseInt(simA.join(''),2), Bval=parseInt(simB.join(''),2);
+  const gt=Aval>Bval, eq=Aval===Bval, lt=Aval<Bval;
+  document.getElementById('ledGT').classList.toggle('active',gt);
+  document.getElementById('ledEQ').classList.toggle('active',eq);
+  document.getElementById('ledLT').classList.toggle('active',lt);
+  let path='';
+  for(let i=simWidth-1;i>=0;i--){
+    if(simA[i]!==simB[i]){ path=`First difference at bit ${i}: A${i}=${simA[i]}, B${i}=${simB[i]} → decides the result.`; break; }
+  }
+  if(!path) path='All bits match → A = B.';
+  document.getElementById('simReadout').innerHTML=
+    `<b>A</b> = ${simA.join('')}<sub>2</sub> = ${Aval}<sub>10</sub><br>`+
+    `<b>B</b> = ${simB.join('')}<sub>2</sub> = ${Bval}<sub>10</sub><br>`+
+    `<b>Result:</b> A ${gt?'&gt;':eq?'=':'&lt;'} B<br>`+
+    `<b>Logic path:</b> ${path}<br>`+
+    `<b>Boolean fired:</b> ${gt?'A&gt;B':eq?'A=B':'A&lt;B'} = 1`;
+}
+document.getElementById('simTabs').addEventListener('click',(e)=>{
+  if(!e.target.classList.contains('tabbtn'))return;
+  document.querySelectorAll('#simTabs .tabbtn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  simWidth=parseInt(e.target.dataset.w);
+  renderSimRows();
+});
+renderSimRows();
+
+/* ---------- Applications ---------- */
+const apps=[
+  ['🖥️','CPU','Branch and comparison instructions rely on magnitude comparators inside the ALU.'],
+  ['⚙️','ALU','Core arithmetic-logic unit block for greater-than / less-than operations.'],
+  ['🗂️','Memory Address Comparison','Cache controllers compare tags to detect hits and misses.'],
+  ['🔌','Digital Systems','General-purpose decision making wherever two values must be ranked.'],
+  ['🔐','Password Verification','Bitwise comparison circuits check entered codes against stored values.'],
+  ['🤖','Robotics','Sensor threshold comparisons trigger obstacle-avoidance decisions.'],
+  ['🏭','Industrial Automation','PLCs compare process variables against set-points continuously.'],
+  ['🚦','Traffic Control','Timing and vehicle-count comparators adjust signal phases.'],
+  ['📟','Embedded Systems','Microcontroller peripherals use comparators for interrupts and limits.'],
+  ['🧠','AI Hardware','Neural accelerators use comparators in pooling and thresholding units.']
+];
+const appGrid=document.getElementById('appGrid');
+apps.forEach(([ic,title,desc])=>{
+  const d=document.createElement('div');
+  d.className='glass card app-card';
+  d.innerHTML=`<div class="ic">${ic}</div><h4>${title}</h4><p>${desc}</p>`;
+  appGrid.appendChild(d);
+});
+
+/* ---------- Downloads (client-side generated text files, no backend) ---------- */
+const dls=[
+  ['📄','Notes','Full written notes as .txt','notes'],
+  ['📊','Truth Tables','1-bit & 2-bit tables as .txt','truth'],
+  ['🧮','Boolean Expressions','All derived equations as .txt','bool'],
+  ['📐','Cheat Sheet','One-page formula summary as .txt','cheat']
+];
+const dlGrid=document.getElementById('dlGrid');
+dls.forEach(([ic,title,desc,key])=>{
+  const d=document.createElement('div');
+  d.className='glass card dl-card';
+  d.style.cursor='pointer';
+  d.innerHTML=`<div class="ic">${ic}</div><div><h4>${title}</h4><p>${desc}</p></div>`;
+  d.addEventListener('click',()=>downloadNote(key,title));
+  dlGrid.appendChild(d);
+});
+function downloadNote(key,title){
+  const content={
+    notes:'MAGNITUDE COMPARATOR — NOTES\n\nA magnitude comparator compares two binary numbers and outputs A>B, A=B, A<B. Comparison proceeds from MSB to LSB; the first differing bit decides the result.',
+    truth:'1-BIT TRUTH TABLE\nA B | A>B A=B A<B\n0 0 | 0 1 0\n0 1 | 0 0 1\n1 0 | 1 0 0\n1 1 | 0 1 0',
+    bool:'BOOLEAN EXPRESSIONS\nA>B = A.B\'\nA<B = A\'.B\nA=B = A\'B\'+AB = A XNOR B\n2-bit A>B = A1B1\' + (A1 XNOR B1)A0B0\'',
+    cheat:'CHEAT SHEET\n- MSB decides first\n- Equal MSBs -> compare next lower bit\n- 7485 = 4-bit cascadable comparator IC\n- 3 outputs, mutually exclusive'
+  }[key];
+  const blob=new Blob([content],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=title.replace(/\s+/g,'_')+'.txt'; a.click();
+}
+
+/* ---------- Quiz ---------- */
+const quizBank=[
+  {q:'What does a magnitude comparator output?',opts:['A single equality bit','A>B, A=B, A<B','A sum and carry','An encoded address'],a:1,ex:'A magnitude comparator produces three mutually exclusive outputs ranking A against B.'},
+  {q:'Which gate forms the core of the equality (A=B) output?',opts:['NAND','XOR','XNOR','NOR'],a:2,ex:'XNOR outputs 1 only when both inputs match, exactly what A=B needs.'},
+  {q:'In a 1-bit comparator, A>B is true when:',opts:['A=0,B=0','A=1,B=0','A=0,B=1','A=1,B=1'],a:1,ex:'Only when A is 1 and B is 0 is A strictly greater than B for single bits.'},
+  {q:'Which bit is examined first in an n-bit comparison?',opts:['LSB','MSB','Middle bit','Parity bit'],a:1,ex:'Comparison starts at the most significant bit since it carries the greatest weight.'},
+  {q:'The 74LS85 IC is a:',opts:['4-bit adder','4-bit magnitude comparator','4-bit decoder','4-bit counter'],a:1,ex:'The 74LS85 is the classic cascadable 4-bit magnitude comparator IC.'},
+  {q:'How many outputs does a standard magnitude comparator have?',opts:['1','2','3','4'],a:2,ex:'Three: A>B, A=B, A<B.'},
+  {q:'An equality comparator differs from a magnitude comparator because it:',opts:['Uses more power','Only checks equality, not direction','Only works on 1 bit','Requires a clock'],a:1,ex:'Equality comparators only report match/mismatch, not which number is larger.'},
+  {q:'For A = 1011 and B = 1010, the result is:',opts:['A<B','A=B','A>B','Undefined'],a:2,ex:'They differ only at the last bit: A ends in 1, B ends in 0, so A>B.'},
+  {q:'What logic expression represents A<B for 1 bit?',opts:["A·B'","A'·B","A⊙B","A+B"],a:1,ex:"A<B = A'B — A is 0 while B is 1."},
+  {q:'Cascading comparator ICs is used to:',opts:['Reduce power','Compare wider numbers','Add two numbers','Store data'],a:1,ex:'Cascading lets several fixed-width comparator ICs compare longer numbers together.'},
+  {q:'A comparator is an example of which logic family?',opts:['Sequential','Combinational','Memory','Analog'],a:1,ex:'Its output depends only on current inputs, making it a combinational circuit.'},
+  {q:'If all bit pairs of A and B match, the output is:',opts:['A>B','A<B','A=B','Undefined'],a:2,ex:'No differing bit means the numbers are identical, so A=B.'},
+  {q:'Which block encodes the highest-priority active input?',opts:['Decoder','Multiplexer','Priority Encoder','Comparator'],a:2,ex:'A priority encoder resolves multiple active inputs by encoding the highest priority one.'},
+  {q:'A 2-bit comparator has how many input lines?',opts:['2','3','4','8'],a:2,ex:'Two bits each for A and B = 4 total input lines.'},
+  {q:'Comparators are commonly used inside a CPU\'s:',opts:['Power supply','ALU','Clock generator','Display driver'],a:1,ex:'The ALU uses comparators to evaluate branch and conditional instructions.'}
+];
+let quizOrder=[], quizIndex=0, quizScore=0, quizAnswered=false;
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function startQuiz(){
+  quizOrder=shuffle([...Array(quizBank.length).keys()]);
+  quizIndex=0; quizScore=0; quizAnswered=false;
+  renderQuiz();
+}
+function renderQuiz(){
+  document.getElementById('quizProgressBar').style.width=(quizIndex/quizBank.length*100)+'%';
+  const body=document.getElementById('quizBody');
+  if(quizIndex>=quizBank.length){
+    const pct=Math.round(quizScore/quizBank.length*100);
+    const pass=pct>=60;
+    body.innerHTML=`<div class="quiz-result">
+      <div class="eyebrow" style="justify-content:center;">Quiz Complete</div>
+      <div class="score">${quizScore}/${quizBank.length}</div>
+      <p style="color:var(--text-1);">${pct}% — ${pass?'Great work, you passed!':'Keep reviewing and try again.'}</p>
+      <div class="btn btn-primary" id="retryQuiz" style="margin-top:20px;display:inline-flex;">Retry Quiz</div>
+      <div class="certificate ${pass?'show':''}">
+        <h3 style="margin-bottom:8px;">🏆 Certificate of Completion</h3>
+        <p style="color:var(--text-1);">This certifies successful completion of the Magnitude Comparator quiz with a score of ${pct}%.</p>
+      </div>
+    </div>`;
+    document.getElementById('quizProgressBar').style.width='100%';
+    document.getElementById('retryQuiz').addEventListener('click',startQuiz);
+    return;
+  }
+  const item=quizBank[quizOrder[quizIndex]];
+  quizAnswered=false;
+  body.innerHTML=`<div class="qtext">Q${quizIndex+1}. ${item.q}</div>
+    <div id="optsWrap"></div>
+    <div class="qexplain" id="qexplain">${item.ex}</div>
+    <div class="quiz-nav"><span class="mono" style="color:var(--text-1);font-size:12px;">Score: ${quizScore}</span><button class="btn btn-primary" id="nextQ" style="padding:10px 22px;font-size:13px;" disabled>Next →</button></div>`;
+  const optsWrap=document.getElementById('optsWrap');
+  item.opts.forEach((opt,i)=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=opt;
+    b.addEventListener('click',()=>{
+      if(quizAnswered)return; quizAnswered=true;
+      [...optsWrap.children].forEach((c,ci)=>{
+        if(ci===item.a)c.classList.add('correct');
+        else if(ci===i)c.classList.add('wrong');
+      });
+      if(i===item.a)quizScore++;
+      document.getElementById('qexplain').classList.add('show');
+      document.getElementById('nextQ').disabled=false;
+    });
+    optsWrap.appendChild(b);
+  });
+  document.getElementById('nextQ').addEventListener('click',()=>{quizIndex++;renderQuiz();});
+}
+startQuiz();
+
+/* ---------- copy boolean expressions globally via keyboard shortcut hint ---------- */
+</script>
+
+<script>
+/* ============================================================================
+   2-bit / 4-bit / n-bit comparator circuits (added — does not touch anything
+   above). Self-contained IIFE using underscore-prefixed helpers so nothing
+   here can collide with the 1-bit circuit script already on this page.
+
+   Boolean logic used (verified by brute force against the full truth table
+   for every 2-bit and 4-bit input combination — 0 mismatches):
+
+     2-bit:
+       E1 = A1 XNOR B1
+       A>B = (A1·B1') + (E1·A0·B0')
+       A<B = (A1'·B1) + (E1·A0'·B0)
+       A=B = E1 · E0        where E0 = A0 XNOR B0
+
+     4-bit:
+       Ei = Ai XNOR Bi  for i = 3,2,1,0
+       A>B = (A3B3') + (E3A2B2') + (E3E2A1B1') + (E3E2E1A0B0')
+       A<B = (A3'B3) + (E3A2'B2) + (E3E2A1'B1) + (E3E2E1A0'B0)
+       A=B = E3·E2·E1·E0
+
+     n-bit: shown as a generalized/symbolic structure (n has no fixed value) —
+     the same repeating "bit-slice" cell (NOT + XNOR + priority AND) shown
+     for stages n-1, n-2, ..., 1, 0.
+   ============================================================================ */
+(function(){
+  const _svgNS = 'http://www.w3.org/2000/svg';
+  function _el(tag, attrs){
+    const e = document.createElementNS(_svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function _andPath(x,y,w,h){
+    const r = h/2;
+    return `M${x},${y} L${x},${y+h} L${x+w-r},${y+h} A${r},${r} 0 0 0 ${x+w-r},${y} Z`;
+  }
+  function _orPath(x,y,w,h){
+    return `M${x},${y} `+
+      `Q${x+w*0.42},${y} ${x+w*0.62},${y+h*0.14} `+
+      `Q${x+w},${y+h*0.42} ${x+w},${y+h*0.5} `+
+      `Q${x+w},${y+h*0.58} ${x+w*0.62},${y+h*0.86} `+
+      `Q${x+w*0.42},${y+h} ${x},${y+h} `+
+      `Q${x+w*0.22},${y+h*0.5} ${x},${y} Z`;
+  }
+  function _notPath(x,y,w,h){
+    const tipX = x + w*0.8;
+    return `M${x},${y} L${x},${y+h} L${tipX},${y+h/2} Z`;
+  }
+  function _xnorBody(x,y,w,h){ return _orPath(x+7,y,w,h); }
+  function _xnorCurve(x,y,h){ return `M${x},${y} Q${x+9},${y+h*0.5} ${x},${y+h}`; }
+
+  /* ---------- layout ---------- */
+  function buildLayout(k, symbolic){
+    const bitLabels = symbolic
+      ? ['n-1','n-2','...','1','0']
+      : Array.from({length:k}, (_,idx)=> String(k-1-idx));
+    const rowH=96, topPad=40;
+    const notX=130, xnorX=240, andX=480, andW=100, orX=720, orW=74, outX=860, inX=30;
+    const rows = bitLabels.map((lbl,i)=>({ label:lbl, isGap: lbl==='...', ay: topPad+i*rowH, by: topPad+i*rowH+40 }));
+    const real = rows.filter(r=>!r.isGap);
+
+    const nots=[], xnors=[];
+    real.forEach(r=>{
+      nots.push({id:'notA'+r.label, x:notX, y:r.ay-13, w:32, h:26, in:{x:notX,y:r.ay}, out:{x:notX+32+10,y:r.ay}});
+      nots.push({id:'notB'+r.label, x:notX, y:r.by-13, w:32, h:26, in:{x:notX,y:r.by}, out:{x:notX+32+10,y:r.by}});
+      xnors.push({id:'xnor'+r.label, x:xnorX, y:r.ay-4, w:54, h:(r.by-r.ay)+8,
+        inA:{x:xnorX,y:r.ay}, inB:{x:xnorX,y:r.by}, out:{x:xnorX+54+16, y:r.ay+(r.by-r.ay)/2}});
+    });
+
+    let cursorY=30;
+    const gtTerms=[], ltTerms=[];
+    for (let i=0;i<real.length;i++){
+      const higherE = real.slice(0,i).map(r=>'xnor'+r.label);
+      const n = higherE.length+2;
+      const h = Math.max(34, n*15);
+      const g = {id:'andGT'+real[i].label, x:andX, y:cursorY, w:andW, h, inputs:[...higherE,'A'+real[i].label,'notB'+real[i].label]};
+      gtTerms.push(g); cursorY += h+16;
+    }
+    cursorY += 20;
+    for (let i=0;i<real.length;i++){
+      const higherE = real.slice(0,i).map(r=>'xnor'+r.label);
+      const n = higherE.length+2;
+      const h = Math.max(34, n*15);
+      const g = {id:'andLT'+real[i].label, x:andX, y:cursorY, w:andW, h, inputs:[...higherE,'notA'+real[i].label,'B'+real[i].label]};
+      ltTerms.push(g); cursorY += h+16;
+    }
+    cursorY += 20;
+    const eqInputs = real.map(r=>'xnor'+r.label);
+    const eqGate = {id:'andEQ', x:andX, y:cursorY, w:andW, h:Math.max(34, eqInputs.length*15), inputs:eqInputs};
+    cursorY += eqGate.h+30;
+
+    const ands = [...gtTerms, ...ltTerms, eqGate];
+    const gtY0=gtTerms[0].y, gtY1=gtTerms[gtTerms.length-1].y+gtTerms[gtTerms.length-1].h;
+    const ltY0=ltTerms[0].y, ltY1=ltTerms[ltTerms.length-1].y+ltTerms[ltTerms.length-1].h;
+    const orGT = {id:'orGT', x:orX, y:(gtY0+gtY1)/2-40, w:orW, h:80, inputs:gtTerms.map(t=>t.id)};
+    const orLT = {id:'orLT', x:orX, y:(ltY0+ltY1)/2-40, w:orW, h:80, inputs:ltTerms.map(t=>t.id)};
+
+    const totalH = Math.max(cursorY, topPad+(rows.length-1)*rowH+100);
+    return {rows, real, nots, xnors, ands, gtTerms, ltTerms, eqGate, orGT, orLT, totalH,
+      dims:{inX, notX, xnorX, andX, andW, orX, orW, outX}};
+  }
+
+  /* ---------- render ---------- */
+  function render(svg, layout){
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', `0 0 1050 ${Math.max(420, layout.totalH+20)}`);
+    const sigEls = {};
+    function track(name, elm, kind){ (sigEls[name] = sigEls[name] || {wires:[], gateShapes:[]})[kind].push(elm); }
+
+    let busLane = 0; const laneX = {};
+    function busXFor(name){
+      if (!(name in laneX)) laneX[name] = layout.dims.xnorX + 90 + (busLane++ % 26) * 6;
+      return laneX[name];
+    }
+    function wireTo(name, from, to){
+      const bx = busXFor(name);
+      const d = `M${from.x},${from.y} L${bx},${from.y} L${bx},${to.y} L${to.x},${to.y}`;
+      const p = _el('path', {class:'gatewire', d});
+      svg.appendChild(p); track(name, p, 'wires');
+    }
+    function directWire(name, from, to){
+      const p = _el('path', {class:'gatewire', d:`M${from.x},${from.y} L${to.x},${to.y}`});
+      svg.appendChild(p); track(name, p, 'wires');
+    }
+
+    layout.real.forEach(r=>{
+      const la = _el('text',{class:'io-label', x:layout.dims.inX, y:r.ay+4}); la.textContent='A'+r.label; svg.appendChild(la);
+      const lb = _el('text',{class:'io-label', x:layout.dims.inX, y:r.by+4}); lb.textContent='B'+r.label; svg.appendChild(lb);
+      track('A'+r.label, la, 'gateShapes'); track('B'+r.label, lb, 'gateShapes');
+      directWire('A'+r.label, {x:layout.dims.inX+22,y:r.ay}, {x:layout.dims.notX,y:r.ay});
+      directWire('B'+r.label, {x:layout.dims.inX+22,y:r.by}, {x:layout.dims.notX,y:r.by});
+    });
+
+    layout.nots.forEach((g,i)=>{
+      const shape = _el('path',{class:'gateshape', d:_notPath(g.x,g.y,g.w,g.h)}); svg.appendChild(shape);
+      const bubble = _el('circle',{class:'gate-bubble', cx:g.x+g.w*0.8+5, cy:g.y+g.h/2, r:4.5}); svg.appendChild(bubble);
+      track(g.id, shape, 'gateShapes'); track(g.id, bubble, 'gateShapes');
+      if (i===0){ const t=_el('text',{class:'gatelabel', x:g.x, y:g.y-6}); t.textContent='NOT'; svg.appendChild(t); }
+    });
+
+    layout.xnors.forEach((g,i)=>{
+      const body = _el('path',{class:'gateshape', d:_xnorBody(g.x,g.y,g.w,g.h)});
+      const curve = _el('path',{class:'gateshape', d:_xnorCurve(g.x-2,g.y,g.h)});
+      const bubble = _el('circle',{class:'gate-bubble', cx:g.x+g.w+9, cy:g.out.y, r:4.5});
+      svg.appendChild(body); svg.appendChild(curve); svg.appendChild(bubble);
+      track(g.id, body,'gateShapes'); track(g.id, curve,'gateShapes'); track(g.id, bubble,'gateShapes');
+      const t=_el('text',{class:'gatelabel', x:g.x, y:g.y-6});
+      t.textContent = i===0 ? 'XNOR (E = A⊙B)' : 'E'+g.id.replace('xnor','');
+      svg.appendChild(t);
+    });
+
+    layout.ands.forEach(g=>{
+      const shape = _el('path',{class:'gateshape', d:_andPath(g.x,g.y,g.w,g.h)});
+      svg.appendChild(shape); track(g.id, shape, 'gateShapes');
+      const n = g.inputs.length;
+      g.inputs.forEach((srcName, idx)=>{
+        const py = g.y + (idx+0.5)*(g.h/n);
+        let srcPort;
+        if (srcName.startsWith('xnor')) srcPort = layout.xnors.find(x=>x.id===srcName).out;
+        else if (srcName.startsWith('notA') || srcName.startsWith('notB')) srcPort = layout.nots.find(x=>x.id===srcName).out;
+        else {
+          const bit = srcName.slice(1);
+          const rr = layout.real.find(r=>r.label===bit);
+          srcPort = {x:layout.dims.notX, y: srcName[0]==='A' ? rr.ay : rr.by};
+        }
+        wireTo(srcName, srcPort, {x:g.x, y:py});
+      });
+      g._out = {x:g.x+g.w, y:g.y+g.h/2};
+    });
+
+    [layout.orGT, layout.orLT].forEach(g=>{
+      const shape = _el('path',{class:'gateshape', d:_orPath(g.x,g.y,g.w,g.h)});
+      svg.appendChild(shape); track(g.id, shape, 'gateShapes');
+      const n = g.inputs.length;
+      g.inputs.forEach((srcId, idx)=>{
+        const srcGate = layout.ands.find(a=>a.id===srcId);
+        const py = g.y + (idx+0.5)*(g.h/n);
+        wireTo(srcId, srcGate._out, {x:g.x, y:py});
+      });
+      g._out = {x:g.x+g.w, y:g.y+g.h/2};
+    });
+
+    const eqOut = layout.eqGate._out;
+    function outLbl(x,y,text){ const t=_el('text',{class:'out-label', x, y:y+4}); t.textContent=text; svg.appendChild(t); return t; }
+    const outGTlabel = outLbl(layout.dims.outX, layout.orGT._out.y, 'A > B');
+    const outEQlabel = outLbl(layout.dims.outX, eqOut.y, 'A = B');
+    const outLTlabel = outLbl(layout.dims.outX, layout.orLT._out.y, 'A < B');
+    const ledGT = _el('circle',{class:'led off', cx:layout.dims.outX+90, cy:layout.orGT._out.y, r:8}); svg.appendChild(ledGT);
+    const ledEQ = _el('circle',{class:'led off', cx:layout.dims.outX+90, cy:eqOut.y, r:8}); svg.appendChild(ledEQ);
+    const ledLT = _el('circle',{class:'led off', cx:layout.dims.outX+90, cy:layout.orLT._out.y, r:8}); svg.appendChild(ledLT);
+    directWire('outGT', layout.orGT._out, {x:layout.dims.outX-14, y:layout.orGT._out.y});
+    directWire('outEQ', eqOut, {x:layout.dims.outX-14, y:eqOut.y});
+    directWire('outLT', layout.orLT._out, {x:layout.dims.outX-14, y:layout.orLT._out.y});
+
+    return {sigEls, ledGT, ledEQ, ledLT, outGTlabel, outEQlabel, outLTlabel};
+  }
+
+  function evaluate(layout, refs, Avals, Bvals){
+    const sig = {};
+    layout.real.forEach(r=>{
+      sig['A'+r.label] = Avals[r.label];
+      sig['B'+r.label] = Bvals[r.label];
+      sig['notA'+r.label] = Avals[r.label] ? 0 : 1;
+      sig['notB'+r.label] = Bvals[r.label] ? 0 : 1;
+      sig['xnor'+r.label] = (Avals[r.label] === Bvals[r.label]) ? 1 : 0;
+    });
+    layout.ands.forEach(g=>{ sig[g.id] = g.inputs.every(s=>sig[s]) ? 1 : 0; });
+    sig['orGT'] = layout.orGT.inputs.some(s=>sig[s]) ? 1 : 0;
+    sig['orLT'] = layout.orLT.inputs.some(s=>sig[s]) ? 1 : 0;
+    sig['outGT'] = sig['orGT']; sig['outEQ'] = sig['andEQ']; sig['outLT'] = sig['orLT'];
+
+    for (const name in refs.sigEls){
+      const on = !!sig[name];
+      const grp = refs.sigEls[name];
+      grp.wires.forEach(w=>w.classList.toggle('on', on));
+      grp.gateShapes.forEach(w=>w.classList.toggle('on', on));
+    }
+    refs.ledGT.classList.toggle('on', !!sig['outGT']); refs.ledGT.classList.toggle('off', !sig['outGT']);
+    refs.ledEQ.classList.toggle('on', !!sig['outEQ']); refs.ledEQ.classList.toggle('off', !sig['outEQ']);
+    refs.ledLT.classList.toggle('on', !!sig['outLT']); refs.ledLT.classList.toggle('off', !sig['outLT']);
+    refs.outGTlabel.classList.toggle('active', !!sig['outGT']);
+    refs.outEQlabel.classList.toggle('active', !!sig['outEQ']);
+    refs.outLTlabel.classList.toggle('active', !!sig['outLT']);
+    return {GT:sig['outGT'], EQ:sig['outEQ'], LT:sig['outLT']};
+  }
+
+  /* ---------- wire up 2-bit ---------- */
+  const layout2 = buildLayout(2, false);
+  const svg2 = document.getElementById('circuitSvg2');
+  const refs2 = render(svg2, layout2);
+  const state2 = {A1:0, A0:0, B1:0, B0:0};
+  function update2(){
+    document.getElementById('c2_A1').textContent = 'A1 = '+state2.A1;
+    document.getElementById('c2_A0').textContent = 'A0 = '+state2.A0;
+    document.getElementById('c2_B1').textContent = 'B1 = '+state2.B1;
+    document.getElementById('c2_B0').textContent = 'B0 = '+state2.B0;
+    evaluate(layout2, refs2, {'1':state2.A1,'0':state2.A0}, {'1':state2.B1,'0':state2.B0});
+  }
+  ['A1','A0','B1','B0'].forEach(key=>{
+    document.getElementById('c2_'+key).addEventListener('click', ()=>{ state2[key] = state2[key]?0:1; update2(); });
+  });
+  update2();
+
+  /* ---------- wire up 4-bit ---------- */
+  const layout4 = buildLayout(4, false);
+  const svg4 = document.getElementById('circuitSvg4');
+  const refs4 = render(svg4, layout4);
+  const state4 = {A3:0,A2:0,A1:0,A0:0,B3:0,B2:0,B1:0,B0:0};
+  function update4(){
+    ['A3','A2','A1','A0','B3','B2','B1','B0'].forEach(k=>{
+      document.getElementById('c4_'+k).textContent = k+'='+state4[k];
+    });
+    evaluate(layout4, refs4,
+      {'3':state4.A3,'2':state4.A2,'1':state4.A1,'0':state4.A0},
+      {'3':state4.B3,'2':state4.B2,'1':state4.B1,'0':state4.B0});
+  }
+  ['A3','A2','A1','A0','B3','B2','B1','B0'].forEach(key=>{
+    document.getElementById('c4_'+key).addEventListener('click', ()=>{ state4[key] = state4[key]?0:1; update4(); });
+  });
+  update4();
+
+  /* ---------- n-bit (symbolic, static) ---------- */
+  const layoutN = buildLayout(4, true); // 4 "real" rows labelled n-1, n-2, 1, 0 with a "..." gap row
+  const svgN = document.getElementById('circuitSvgN');
+  render(svgN, layoutN);
+  (function drawGap(){
+    const gapRow = layoutN.rows.find(r=>r.isGap);
+    if (gapRow){
+      const t = _el('text', {class:'gatelabel', x: layoutN.dims.inX, y: (gapRow.ay+gapRow.by)/2 + 4, style:'font-size:20px;'});
+      t.textContent = '⋮  (repeats for every bit down to i = 0)';
+      svgN.appendChild(t);
+    }
+  })();
+
+  /* ---------- circuit type tabs ---------- */
+  document.querySelectorAll('#circuitTypeTabs .tabbtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#circuitTypeTabs .tabbtn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      ['c1','c2','c4','cn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById(btn.dataset.ctab).classList.add('active');
+    });
+  });
+
+  /* ---------- fullscreen buttons for new diagrams (mirrors existing circFull behavior) ---------- */
+  function wireFullscreen(btnId, wrapId){
+    const btn = document.getElementById(btnId);
+    const wrap = document.getElementById(wrapId);
+    if (!btn || !wrap) return;
+    btn.addEventListener('click', ()=>{ wrap.classList.toggle('fullscreen-active'); });
+  }
+  wireFullscreen('circFull2','circuitWrap2');
+  wireFullscreen('circFull4','circuitWrap4');
+  wireFullscreen('circFullN','circuitWrapN');
+})();
+</script>
+</body>
+</html>
